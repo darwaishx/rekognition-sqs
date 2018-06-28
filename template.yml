@@ -9,7 +9,6 @@ Parameters:
     MinLength: 4
     MaxLength: 50
 
-
   TABLENAME:
     Type: String
     Description: The DynamoDB table for storing Rekognition output values. Minimum 4 characters
@@ -49,13 +48,12 @@ Resources:
       MemorySize: 128
       Timeout: 300
       Policies:
-        - AmazonRekognitionReadOnlyAccess
         - DynamoDBCrudPolicy:
             TableName: !Ref TABLENAME
         - S3ReadPolicy:
             BucketName: !Ref BUCKETNAME
         - SQSPollerPolicy:
-            QueueName: !Ref QUEUENAME
+            QueueName: !Ref QUEUENAME   
       Environment:
         Variables:
           BucketName: !Ref BUCKETNAME
@@ -65,6 +63,12 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: !Ref BUCKETNAME
+
+  SQSQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Ref QUEUENAME
+      VisibilityTimeout: 3000
 
   DynamoDBTable:
     Type: AWS::DynamoDB::Table
