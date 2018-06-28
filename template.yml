@@ -1,0 +1,85 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: An Amazon SQS trigger that uses Rekognition API and writes image content to a DynamoDB table
+
+Parameters:
+  BUCKETNAME:
+    Type: String
+    Description: S3 Bucket name containing celebrity images
+    MinLength: 4
+    MaxLength: 50
+
+
+  TABLENAME:
+    Type: String
+    Description: The DynamoDB table for storing Rekognition output values. Minimum 4 characters
+    Default: 'SQSESDDBTable'
+    MinLength: 4
+    MaxLength: 50
+    AllowedPattern: ^[a-zA-Z0-9][a-zA-Z0-9-_]*[a-zA-Z0-9]$
+    ConstraintDescription: 'Required parameter.'
+
+  QUEUENAME:
+    Type: String
+    Description: Queue name containing image information
+    Default: 'ESLambdaQ'
+    AllowedPattern: ^[a-zA-Z0-9][a-zA-Z0-9-_]*[a-zA-Z0-9]$
+
+Outputs:
+  ImageBucket:
+    Description: S3 Bucket where the images needs to be uploaded.
+    Value: !Ref BUCKETNAME
+
+  OutputDDBTable:
+    Description: DynamoDB table where the Rekognition output will be stored.
+    Value: !Ref TABLENAME
+
+  SQSQueueName:
+    Description: SQS Queue to which the image name will be published.
+    Value: !Ref QUEUENAME
+
+Resources:
+  SQSLambda:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.6
+      CodeUri: ./src
+      Description: 'An Amazon SQS trigger that uses Rekognition API and writes image content to a DynamoDB table'
+      MemorySize: 128
+      Timeout: 300
+      Policies:
+        - AmazonRekognitionReadOnlyAccess
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TABLENAME
+        - S3ReadPolicy:
+            BucketName: !Ref BUCKETNAME
+        - SQSPollerPolicy:
+            QueueName: !Ref QUEUENAME
+      Environment:
+        Variables:
+          BucketName: !Ref BUCKETNAME
+          DynamoDBTableName: !Ref TABLENAME
+
+  ImageBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BUCKETNAME
+
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref TABLENAME
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+      KeySchema: 
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      ProvisionedThroughput: 
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5

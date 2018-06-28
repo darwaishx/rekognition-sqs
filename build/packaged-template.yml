@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: An Amazon SQS trigger that uses Rekognition API and writes image content
+  to a DynamoDB table
+Outputs:
+  ImageBucket:
+    Description: S3 Bucket where the images needs to be uploaded.
+    Value:
+      Ref: BUCKETNAME
+  OutputDDBTable:
+    Description: DynamoDB table where the Rekognition output will be stored.
+    Value:
+      Ref: TABLENAME
+  SQSQueueName:
+    Description: SQS Queue to which the image name will be published.
+    Value:
+      Ref: QUEUENAME
+Parameters:
+  BUCKETNAME:
+    Description: S3 Bucket name containing celebrity images
+    MaxLength: 50
+    MinLength: 4
+    Type: String
+  QUEUENAME:
+    AllowedPattern: ^[a-zA-Z0-9][a-zA-Z0-9-_]*[a-zA-Z0-9]$
+    Default: ESLambdaQ
+    Description: Queue name containing image information
+    Type: String
+  TABLENAME:
+    AllowedPattern: ^[a-zA-Z0-9][a-zA-Z0-9-_]*[a-zA-Z0-9]$
+    ConstraintDescription: Required parameter.
+    Default: SQSESDDBTable
+    Description: The DynamoDB table for storing Rekognition output values. Minimum
+      4 characters
+    MaxLength: 50
+    MinLength: 4
+    Type: String
+Resources:
+  DynamoDBTable:
+    Properties:
+      AttributeDefinitions:
+      - AttributeName: pk
+        AttributeType: S
+      - AttributeName: sk
+        AttributeType: S
+      KeySchema:
+      - AttributeName: pk
+        KeyType: HASH
+      - AttributeName: sk
+        KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      TableName:
+        Ref: TABLENAME
+    Type: AWS::DynamoDB::Table
+  ImageBucket:
+    Properties:
+      BucketName:
+        Ref: BUCKETNAME
+    Type: AWS::S3::Bucket
+  SQSLambda:
+    Properties:
+      CodeUri: s3://sqseslambdabucket/0b5a56362b9600f034224e04467259af
+      Description: An Amazon SQS trigger that uses Rekognition API and writes image
+        content to a DynamoDB table
+      Environment:
+        Variables:
+          BucketName:
+            Ref: BUCKETNAME
+          DynamoDBTableName:
+            Ref: TABLENAME
+      Handler: lambda_function.lambda_handler
+      MemorySize: 128
+      Policies:
+      - AmazonRekognitionReadOnlyAccess
+      - DynamoDBCrudPolicy:
+          TableName:
+            Ref: TABLENAME
+      - S3ReadPolicy:
+          BucketName:
+            Ref: BUCKETNAME
+      - SQSPollerPolicy:
+          QueueName:
+            Ref: QUEUENAME
+      Runtime: python3.6
+      Timeout: 300
+    Type: AWS::Serverless::Function
+Transform: AWS::Serverless-2016-10-31
