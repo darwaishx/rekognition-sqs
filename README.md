@@ -24,7 +24,7 @@ Please note:
 a. We will be using the us-east-2 region (Ohio) for deploying this application.  
 b. User-specified input parameters will be marked with curly braces in the following instructions. For e.g., {s3-bucket-name} will need to be replaced with a bucket name of your choice, such as mybucketname etc.  
 c. This SAM template uses inline policies. For this application to work correctly, please update the downloaded SAM template 'template.yml' with the following inline policy statements prior to executing the instructions below:  
-```yaml
+```
 		- Version: '2012-10-17'
 		Statement:
 		- Effect: Allow
