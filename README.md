@@ -8,10 +8,10 @@ Using SQS as an event source, trigger a Lambda function to perform image analysi
 
 This repository contains an AWS Lambda function that uses SQS as an event source.
 
-- An image is uploaded to a S3 bucket
-- Image name is written to a SQS queue
-- The SQS message triggers a Lambda function
-- Lambda invokes Rekognition APIs for celebrity and text detection on that image
+- Images exist in an S3 bucket
+- Image names are send as a message to an SQS queue
+- The SQS message triggers the Lambda function
+- Lambda invokes Rekognition APIs for object and scene, content moderation, celebrity and text detection in that image
 - Lambda writes the output to a DynamoDB table.  
 
 ### Prerequisites
