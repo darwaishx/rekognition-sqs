@@ -72,4 +72,4 @@ These policies may be entered as the last entry in the 'Policies' section after
 #### Testing the application
 1. Post an image of your favorite celebrity with some text in the image, to the S3 bucket created in Step 4 as part of application deployment above.  
 2. Post the image file name to the SQS queue created in Step 4 above.  
-3. The Lambda execution should take about 20-30 seconds. Observe the results of the execution in the DynamoDB table.
+3. In few seconds you should see information about detected objects, scene, celebrities, content moderation and text in the DynamoDB table.
