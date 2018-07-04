@@ -72,8 +72,6 @@ def getFaces(rekognition, bucket, image, ddb, pk):
         Attributes=['ALL']
     )
 
-    print(faces)
-
     ti = 0
 
     for face in faces['FaceDetails']:
